@@ -1,0 +1,45 @@
+services:
+  frontend:
+    image: frontend-nodejs
+    build: ./frontend/
+    ports:
+      - 5173:5173
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  backend:
+    image: backend-springboot
+    build: ./backend/
+    ports: 
+      - 8080:8080
+    environment:
+      - DATABASE_URL=jdbc:postgresql://db-postgresql:5432/nimbus
+      - DATABASE_USERNAME=marco
+      - DATABASE_PASSWORD=example
+    depends_on:
+      - db-postgresql
+
+  db-postgresql:
+    image: postgres:17
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    volumes:
+      - type: tmpfs
+        target: /dev/shm
+        tmpfs:
+          size: 134217728 # 128*2^20 bytes = 128Mb
+    ports: 
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: marco
+      POSTGRES_DB: nimbus
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
