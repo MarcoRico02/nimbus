@@ -3,7 +3,7 @@ services:
     image: frontend-nodejs
     build: ./frontend/
     ports:
-      - 5173:5173
+      - "${FRONTEND_PORT}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -11,35 +11,33 @@ services:
   backend:
     image: backend-springboot
     build: ./backend/
-    ports: 
-      - 8080:8080
+    ports:
+      - "${BACKEND_PORT}:8080"
     environment:
-      - DATABASE_URL=jdbc:postgresql://db-postgresql:5432/nimbus
-      - DATABASE_USERNAME=marco
-      - DATABASE_PASSWORD=example
+      DATABASE_URL: jdbc:postgresql://db-postgresql:5432/${POSTGRES_DB}
+      DATABASE_USERNAME: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       - db-postgresql
 
   db-postgresql:
-    image: postgres:17
+    image: postgres:${POSTGRES_VERSION}
     restart: always
-    # set shared memory limit when using docker compose
-    shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
+    shm_size: ${POSTGRES_SHM_SIZE}
     volumes:
       - type: tmpfs
         target: /dev/shm
         tmpfs:
-          size: 134217728 # 128*2^20 bytes = 128Mb
-    ports: 
-      - "5432:5432"
+          size: ${POSTGRES_TMPFS_SIZE}
+    ports:
+      - "${POSTGRES_PORT}:5432"
     environment:
-      POSTGRES_PASSWORD: example
-      POSTGRES_USER: marco
-      POSTGRES_DB: nimbus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
 
   adminer:
     image: adminer
     restart: always
     ports:
-      - 8081:8080
+      - "${ADMINER_PORT}:8080"
